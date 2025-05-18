@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Musical Features Identification</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/wavesurfer.js@6/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@6/dist/plugin/wavesurfer.regions.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@6/dist/plugin/wavesurfer.timeline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="editor-container">
+      <h2>Musical Features Identification</h2>
+      <div class="button-row">
+        <div>
+          <button onclick="document.getElementById('audioFile').click()">
+            Import MP3
+          </button>
+          <input
+            type="file"
+            id="audioFile"
+            accept="audio/mp3"
+            style="display: none"
+          />
+          <button onclick="document.getElementById('loadZip').click()">
+            Open Project
+          </button>
+          <input
+            type="file"
+            id="loadZip"
+            accept="application/zip"
+            style="display: none"
+          />
+          <button onclick="confirmAndClear()">Clear All</button>
+        </div>
+        <div>
+          <button onclick="downloadProjectZip()">Save Project</button>
+          <button onclick="exportExtracts()">Export Extracts</button>
+        </div>
+      </div>
+      <div id="timeline"></div>
+      <div id="waveform" style="height: 200px; margin-bottom: 1rem"></div>
+      <button id="playPauseBtn">Play</button>
+      <button id="toggleLoopBtn" onclick="toggleLoop()">Loop: Off</button>
+
+      <div id="commentList"></div>
+    </div>
+    <div id="downloadModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <p>
+          Go to your Downloads folder – comments and extracts can be found
+          there.
+        </p>
+        <button onclick="closeDownloadModal()">Go</button>
+      </div>
+    </div>
+
+    <div id="saveProjectModal" class="modal-overlay" style="display: none">
+      <div class="modal-content save-modal">
+        <h3>Save Project</h3>
+        <p class="modal-subtext">
+          Your information will be downloaded as a zip file. Please keep it
+          safe.
+        </p>
+        <input
+          type="text"
+          id="projectNameInput"
+          placeholder="Enter project name..."
+        />
+        <div class="modal-buttons">
+          <button onclick="submitProjectName()">Save</button>
+          <button onclick="closeSaveProjectModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
