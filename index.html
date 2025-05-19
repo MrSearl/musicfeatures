@@ -32,12 +32,13 @@
           <button onclick="document.getElementById('loadZip').click()">
             Open Project
           </button>
-          <input
-            type="file"
-            id="loadZip"
-            accept="application/zip"
-            style="display: none"
-          />
+        <input
+        type="file"
+        id="loadZip"
+        accept=".mp3,application/json"
+        multiple
+        style="display: none"
+/>
           <button onclick="confirmAndClear()">Clear All</button>
         </div>
         <div>
@@ -66,8 +67,7 @@
       <div class="modal-content save-modal">
         <h3>Save Project</h3>
         <p class="modal-subtext">
-          Your information will be downloaded as a zip file. Please keep it
-          safe.
+          You will download two files - you will need both in order to come back to this project.
         </p>
         <input
           type="text"

@@ -100,37 +100,43 @@ document.getElementById("audioFile").addEventListener("change", (e) => {
 });
 
 document.getElementById("loadZip").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const files = Array.from(e.target.files);
+  if (files.length !== 2) {
+    alert("Please select *both* your .mp3 and .json project files.");
+    return;
+  }
+
+  const mp3File = files.find(f => f.name.toLowerCase().endsWith(".mp3"));
+  const jsonFile = files.find(f => f.name.toLowerCase().endsWith(".json"));
+
+  if (!mp3File || !jsonFile) {
+    alert("You need to select both a .mp3 file and a .json file.");
+    return;
+  }
 
   const confirmClear = confirm(
     "Are you sure you want to clear the current audio and all comments?"
   );
   if (!confirmClear) return;
 
-  const zip = await JSZip.loadAsync(file);
-  const mp3Entry = Object.keys(zip.files).find((name) =>
-    name.toLowerCase().endsWith(".mp3")
-  );
-  if (!mp3Entry) return alert("No MP3 file found in ZIP.");
+  // Clear current state
+  clearAll(async () => {
+    loadedAudioFile = mp3File;
+    loadedAudioFilename = mp3File.name.replace(/\.[^/.]+$/, ""); // strip extension
 
-  const audioBlob = await zip.file(mp3Entry).async("blob");
-  const audioFile = new File([audioBlob], mp3Entry, { type: "audio/mp3" });
-  const jsonText = await zip.file("project.json").async("string");
-  const parsedComments = JSON.parse(jsonText);
-
-  clearAll(() => {
-    loadedAudioFile = audioFile;
-    loadedAudioFilename = mp3Entry.replace(/\.[^/.]+$/, ""); // strip extension
-
-    const url = URL.createObjectURL(audioBlob);
+    const url = URL.createObjectURL(mp3File);
     wavesurfer.load(url);
+
+    // Read the JSON file
+    const jsonText = await jsonFile.text();
+    const parsedComments = JSON.parse(jsonText);
 
     wavesurfer.once("ready", () => {
       isLoadingProject = true;
       comments.length = 0;
       parsedComments.forEach((c) => comments.push(c));
 
+      // Recreate regions
       setTimeout(() => {
         parsedComments.forEach((c) => {
           const region = wavesurfer.addRegion({
@@ -142,7 +148,7 @@ document.getElementById("loadZip").addEventListener("change", async (e) => {
             resize: true,
           });
 
-          // 🔧 Apply styling to resize handles
+          // Resize handle styling
           region.element
             .querySelectorAll(".wavesurfer-handle")
             .forEach((handle) => {
@@ -158,6 +164,7 @@ document.getElementById("loadZip").addEventListener("change", async (e) => {
     });
   });
 });
+
 
 function clearAll(callbackAfterReset = null) {
   if (wavesurfer) wavesurfer.destroy();
@@ -371,8 +378,7 @@ function submitProjectName() {
 
   closeSaveProjectModal();
 
-  const zip = new JSZip();
-
+  // Update region timings before saving
   const updated = comments.map((c) => {
     const region = wavesurfer.regions.list[c.id];
     return {
@@ -382,10 +388,19 @@ function submitProjectName() {
     };
   });
 
-  zip.file("project.json", JSON.stringify(updated, null, 2));
-  zip.file(loadedAudioFile.name, loadedAudioFile);
-
-  zip.generateAsync({ type: "blob" }).then((blob) => {
-    saveAs(blob, `${name}.zip`);
+  // ⬇️ 1. Save JSON File
+  const jsonBlob = new Blob([JSON.stringify(updated, null, 2)], {
+    type: "application/json",
   });
+  const jsonFilename = `${name} - Comments.json`;
+  saveAs(jsonBlob, jsonFilename);
+
+  // ⬇️ 2. Save MP3 File (original audio)
+  if (loadedAudioFile) {
+    const ext = loadedAudioFile.name.split(".").pop();
+    const audioFilename = `${name} - Audio.${ext}`;
+    saveAs(loadedAudioFile, audioFilename);
+  } else {
+    alert("No audio file loaded.");
+  }
 }
